@@ -1,0 +1,923 @@
+<title>Chiripa</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Martian+Mono:wght@400;700;800&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+  /* Tema único: página blanca, rojo Melate. */
+  :root {
+    --bg: #FFFFFF;
+    --card: #FFFFFF;
+    --ink: #221E1E;
+    --muted: #7A6E6E;
+    --line: #E6DEDE;
+    --accent: #D22630;
+    --accent-ink: #FFFFFF;
+    --good: #0E7C6B;
+    --tape-a: #D22630;
+    --tape-b: #FFFFFF;
+    --display: "Martian Mono", monospace;
+    --body: "IBM Plex Mono", monospace;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 14px;
+    line-height: 1.55;
+    margin: 0;
+    padding: 0 1.25rem 4rem;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; }
+
+  /* ── Masthead ─────────────────────────────── */
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    padding: 2.2rem 0 1.4rem;
+  }
+  h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(1.9rem, 5vw, 3rem);
+    letter-spacing: -0.04em;
+    line-height: 1;
+    margin: 0;
+    text-wrap: balance;
+  }
+  h1 .lab { color: var(--accent); }
+  .tagline {
+    margin: 0.5rem 0 0;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+  }
+  .readout {
+    text-align: right;
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .readout b { color: var(--ink); font-weight: 600; }
+  .readout .nums { color: var(--accent); font-weight: 600; letter-spacing: 0.08em; }
+
+  /* ── Disclaimer tape ──────────────────────── */
+  .tape {
+    border-top: 8px solid;
+    border-bottom: 8px solid;
+    border-image: repeating-linear-gradient(-45deg,
+      var(--tape-a) 0 12px, var(--tape-b) 12px 24px) 8;
+    background: var(--card);
+    padding: 0.9rem 1.1rem;
+    margin: 0 0 1.8rem;
+    font-size: 0.8rem;
+  }
+  .tape strong {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+
+  /* ── Controls ─────────────────────────────── */
+  .panel {
+    border: 1px solid var(--line);
+    background: var(--card);
+    padding: 1.1rem 1.2rem 1.3rem;
+    margin-bottom: 2rem;
+    display: grid;
+    gap: 1.1rem;
+  }
+  .panel-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem 1.6rem;
+    align-items: center;
+  }
+  .label {
+    font-family: var(--display);
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    margin-bottom: 0.45rem;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+  .chip {
+    font-family: var(--body);
+    font-size: 0.74rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.32rem 0.7rem;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .chip::before { content: "○ "; }
+  .chip[aria-pressed="true"] {
+    border-color: var(--accent);
+    color: var(--ink);
+  }
+  .chip[aria-pressed="true"]::before { content: "● "; color: var(--accent); }
+  .chip:focus-visible, .stepper button:focus-visible, .generate:focus-visible,
+  .copy:focus-visible, .copy-all:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); }
+  .stepper button {
+    font-family: var(--body);
+    font-size: 1rem;
+    width: 2.2rem; height: 2.2rem;
+    background: transparent;
+    border: none;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .stepper button:hover { color: var(--accent); }
+  .stepper output {
+    min-width: 2.4rem;
+    text-align: center;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    align-self: stretch;
+    display: grid;
+    place-items: center;
+  }
+  .generate {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    background: var(--accent);
+    color: var(--accent-ink);
+    border: none;
+    padding: 0.85rem 1.8rem;
+    cursor: pointer;
+    margin-left: auto;
+  }
+  .generate:hover { filter: brightness(1.12); }
+  .generate:active { transform: translateY(1px); }
+
+  /* ── Tickets ──────────────────────────────── */
+  .tickets {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    gap: 1.1rem;
+  }
+  .ticket {
+    border: 1px solid var(--line);
+    background: var(--card);
+    padding: 0.95rem 1.05rem 1.05rem;
+    animation: deal 0.35s ease both;
+    cursor: pointer;
+  }
+  .ticket.sel {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1.5px var(--accent);
+  }
+  @keyframes deal {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ticket { animation: none; }
+  }
+  .ticket-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-bottom: 0.8rem;
+  }
+  .ticket-no {
+    font-family: var(--display);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+  }
+  .ticket-strategy {
+    font-family: var(--display);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+  }
+  .balls, .ballstats {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.4rem;
+    justify-items: center;
+  }
+  .ball {
+    font-family: var(--display);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    font-size: 1.02rem;
+    width: 2.5rem; height: 2.5rem;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: var(--accent);
+    background: radial-gradient(circle at 34% 28%,
+      #FFFFFF 0%, #FBF8F8 45%, #EFE8E8 78%, #E2D9D9 100%);
+    box-shadow:
+      inset -3px -4px 7px rgba(146, 116, 116, 0.22),
+      inset 2px 3px 5px rgba(255, 255, 255, 0.9),
+      0 1px 2px rgba(70, 35, 35, 0.15);
+  }
+  .ballstats { margin-top: 0.35rem; }
+  .ballstats span {
+    font-size: 0.62rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    line-height: 1.35;
+  }
+  .ballstats .r-hot { color: var(--good); }
+  .ticket-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.85rem;
+    padding-top: 0.7rem;
+    border-top: 1px dashed var(--line);
+    font-size: 0.74rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .copy, .copy-all {
+    font-family: var(--body);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    padding: 0.25rem 0.6rem;
+    cursor: pointer;
+  }
+  .copy:hover, .copy-all:hover { border-color: var(--accent); color: var(--accent); }
+  .toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin: 1rem 0 0;
+  }
+
+  /* ── Chart ────────────────────────────────── */
+  .chart-section { margin-top: 2.6rem; }
+  .chart-section > .label { margin-bottom: 0.5rem; }
+  .chart-box {
+    border: 1px solid var(--line);
+    background: var(--card);
+    padding: 0.9rem 1rem 0.5rem;
+    position: relative;
+  }
+  .chart-top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.4rem;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.7rem;
+  }
+  .chart-legend {
+    display: flex;
+    gap: 1.1rem;
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .sw {
+    display: inline-block;
+    width: 0.65rem; height: 0.65rem;
+    border-radius: 2px;
+    margin-right: 0.35rem;
+    vertical-align: -1px;
+  }
+  .sw-sel { background: #D22630; }
+  .sw-rest { background: #2F6BB0; }
+  .ax { font-family: var(--body); font-size: 10px; fill: var(--muted); }
+  .ax.exp { fill: var(--ink); }
+  #tooltip {
+    position: absolute;
+    display: none;
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 0.68rem;
+    padding: 0.3rem 0.55rem;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 3;
+  }
+
+  /* ── Methods & footer ─────────────────────── */
+  .stepper.mini { vertical-align: middle; }
+  .stepper.mini button { width: 1.5rem; height: 1.5rem; font-size: 0.8rem; }
+  .stepper.mini output { min-width: 1.9rem; font-size: 0.75rem; }
+  .eq-vals {
+    flex: 1 1 300px;
+    margin-top: 0.6rem;
+    padding-left: 1.2rem;
+    border-left: 1px dashed var(--line);
+    font-size: 0.72rem;
+    color: var(--muted);
+    overflow-x: auto;
+  }
+  .eq-vals math { font-size: 0.92rem; color: var(--ink); margin-left: 0.3rem; }
+  .vals-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1rem;
+    margin-top: 0.35rem;
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .vals-row b { color: var(--accent); font-weight: 600; }
+  .k-nota { font-size: 0.65rem; color: var(--muted); margin-top: 0.3rem; }
+  .methods { margin-top: 2.6rem; }
+  .methods > .label { margin-bottom: 0.2rem; }
+  .notation {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin: 0.4rem 0 1.1rem;
+  }
+  .method-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* lista: cada fórmula a lo ancho */
+    gap: 1.1rem;
+  }
+  .method {
+    border: 1px solid var(--line);
+    background: var(--card);
+    padding: 1rem 1.1rem 1.1rem;
+  }
+  .method-body {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.4rem 2.5rem;
+  }
+  .method h3 {
+    font-family: var(--display);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    margin: 0 0 0.45rem;
+  }
+  .method p { margin: 0; font-size: 0.78rem; color: var(--muted); }
+  .eq {
+    overflow-x: auto;
+    margin-top: 0.6rem;
+  }
+  .eq math { font-size: 0.98rem; color: var(--ink); }
+  .eq math[display="block"] { margin: 0.15rem 0; }
+  .tape math { font-size: 0.9rem; }
+  footer {
+    margin-top: 2.4rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.72rem;
+    color: var(--muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 2rem;
+    justify-content: space-between;
+    font-variant-numeric: tabular-nums;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  footer .gh { display: inline-flex; align-items: center; gap: 0.35rem; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>CHIRIPA<span class="lab">_</span></h1>
+      <p class="tagline">números del melate por pura estadística</p>
+    </div>
+    <div class="readout">
+      <div><b>ÚLTIMO SORTEO</b> · concurso <b id="r-concurso">__LAST_DRAW__</b> · <span id="r-fecha">__LAST_DATE__</span></div>
+      <div class="nums" id="r-nums"></div>
+      <div><span id="r-total"></span> sorteos analizados · era 6 de 56</div>
+      <div>bolsa <b id="r-pot"></b> · próximo sorteo <b id="r-next"></b></div>
+    </div>
+  </header>
+
+  <aside class="tape" role="note">
+    <strong>Sitio no oficial · solo entretenimiento</strong>
+    Sin afiliación con Lotería Nacional para la Asistencia Pública ni con el juego
+    Melate®. Las "estrategias" son ejercicios estadísticos sobre el histórico público:
+    <em>no predicen nada</em>. Toda combinación de 6 números tiene exactamente la misma
+    probabilidad de ganar:
+    <math><mrow><mi>P</mi><mo>=</mo><msup><mrow><mo>(</mo><mfrac linethickness="0"><mn>56</mn><mn>6</mn></mfrac><mo>)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo>=</mo><mn>1</mn><mo>/</mo><mn>32&#8239;468&#8239;436</mn></mrow></math>.
+    Para dimensionar, todo esto es más probable que tu boleto: que te caiga
+    un rayo <em>dos veces</em> en la vida (≈ 1 en 9 millones), que te
+    repartan una flor imperial en la primera mano (1 en 649,740), que un
+    huevo te salga de <em>triple</em> yema (≈ 1 en 25 millones), que te
+    canonicen santo (≈ 1 en 20 millones) y que tengas cuatrillizos
+    idénticos (≈ 1 en 15 millones).
+    Esto es pura diversión y no nos hacemos responsables de nada.
+    Juega con moderación.
+  </aside>
+
+  <section class="panel" aria-label="Controles">
+    <div>
+      <div class="label">Estrategias</div>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="panel-row">
+      <div>
+        <div class="label">Apuestas</div>
+        <div class="stepper">
+          <button type="button" id="minus" aria-label="Menos apuestas">−</button>
+          <output id="count">8</output>
+          <button type="button" id="plus" aria-label="Más apuestas">+</button>
+        </div>
+      </div>
+      <div>
+        <div class="label">Números por boleto</div>
+        <div class="stepper">
+          <button type="button" id="k-minus" aria-label="Menos números por boleto">−</button>
+          <output id="k-val">6</output>
+          <button type="button" id="k-plus" aria-label="Más números por boleto">+</button>
+        </div>
+        <div class="k-nota" id="k-nota">sencilla: 1 combinación</div>
+      </div>
+      <button type="button" class="generate" id="generate">Generar apuestas</button>
+    </div>
+  </section>
+
+  <section class="tickets" id="tickets" aria-live="polite"></section>
+  <div class="toolbar">
+    <button type="button" class="copy-all" id="copy-all">Copiar todas</button>
+  </div>
+
+  <section class="chart-section" aria-label="El histórico en números">
+    <h2 class="label">El histórico en números</h2>
+    <div class="chart-box" id="chart-box">
+      <div class="chart-top">
+        <div class="chips" id="metric-chips" role="group" aria-label="Métrica"></div>
+        <div class="chart-legend">
+          <span><i class="sw sw-sel"></i>en tus apuestas</span>
+          <span><i class="sw sw-rest"></i>resto del tablero</span>
+        </div>
+      </div>
+      <div id="chart"></div>
+      <div id="tooltip"></div>
+    </div>
+  </section>
+
+  <section class="methods" aria-label="Las estrategias">
+    <h2 class="label">Las estrategias</h2>
+    <p class="notation">
+      Notación:
+      <math><msub><mi>f</mi><mi>n</mi></msub></math> veces que ha salido el número <math><mi>n</mi></math> en la era 6-de-56 ·
+      <math><msub><mi>r</mi><mi>n</mi></msub></math> sorteos desde su última aparición ·
+      <math><msub><mi>C</mi><mrow><mi>a</mi><mo>,</mo><mi>b</mi></mrow></msub></math> veces que <math><mi>a</mi></math> y <math><mi>b</mi></math> han salido juntos ·
+      <math><mi>E</mi></math> números ya elegidos ·
+      <math><mi>A</mi></math> la apuesta (6 números) ·
+      ejemplo con <math><mi>n</mi></math> =
+      <span class="stepper mini"><button type="button" id="n-minus" aria-label="Número de ejemplo anterior">−</button><output id="n-val">19</output><button type="button" id="n-plus" aria-label="Siguiente número de ejemplo">+</button></span>
+    </p>
+    <div class="method-grid" id="legend"></div>
+  </section>
+
+  <footer>
+    <span>Datos: <a href="https://pronosticos.gob.mx/Documentos/Historicos/Melate.csv">CSV histórico oficial</a> · al __LAST_DATE__</span>
+    <span>bajo cada número: f frecuencia histórica · r sorteos sin salir</span>
+    <span>chiripa.mx — porque ganar sería pura chiripa</span>
+    <a class="gh" href="https://github.com/netmask/chiripa" aria-label="Código fuente en GitHub">
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+      código abierto</a>
+  </footer>
+</div>
+
+<script type="module">
+/* All math lives on the server (Rust, src/stats.rs — with tests). This
+   script only formats what /api/stats and /api/tickets computed. */
+const D = await (await fetch("/api/stats")).json();
+const N = D.draws;
+const RECENT = D.window;
+const freq = [0, ...D.freq];
+const recentFreq = [0, ...D.recent];
+const gap = [0, ...D.gap];
+const POP = [0, ...D.pop];
+const WBAL = [0, ...D.balanced_w];
+const BEST = [null, ...D.best_pair];
+const HOT6 = D.hot6, COLD6 = D.cold6;
+const SUM_LO = D.sum_lo, SUM_HI = D.sum_hi, MAX_GAP = D.max_gap;
+const F_DEN = D.f_den, R_DEN = D.r_den;
+
+const ALL = Array.from({ length: 56 }, (_, i) => i + 1);
+
+/* Strategy metadata only: generation happens server-side in Rust. */
+const STRATEGIES = [
+  { id: "hot", name: "Calientes", det: true,
+    desc: "Los 6 números más frecuentes de toda la era 6-de-56. Determinista: solo cambia cuando hay sorteos nuevos.",
+    math: `<math display="block"><mrow><mi>A</mi><mo>=</mo><msub><mi>argtop</mi><mn>6</mn></msub><mo>&#8289;</mo><msub><mi>f</mi><mi>n</mi></msub></mrow></math>` },
+  { id: "cold", name: "Frías", det: true,
+    desc: "Los 6 números con más sorteos consecutivos sin salir (mayor retraso). Determinista.",
+    math: `<math display="block"><mrow><mi>A</mi><mo>=</mo><msub><mi>argtop</mi><mn>6</mn></msub><mo>&#8289;</mo><msub><mi>r</mi><mi>n</mi></msub></mrow></math>` },
+  { id: "weighted", name: "Ponderada", det: false,
+    desc: "Muestreo aleatorio sin reemplazo, con probabilidad proporcional a la frecuencia histórica de cada número (suavizado de Laplace).",
+    math: `<math display="block"><mrow><mi>P</mi><mo>(</mo><mi>n</mi><mo>)</mo><mo>=</mo><mfrac><mrow><msub><mi>f</mi><mi>n</mi></msub><mo>+</mo><mn>1</mn></mrow><mrow><munderover><mo>&#x2211;</mo><mrow><mi>m</mi><mo>=</mo><mn>1</mn></mrow><mn>56</mn></munderover><mo>(</mo><msub><mi>f</mi><mi>m</mi></msub><mo>+</mo><mn>1</mn><mo>)</mo></mrow></mfrac></mrow></math>`,
+ },
+  { id: "recent", name: "Reciente", det: false,
+    desc: "Igual que Ponderada, pero contando solo los últimos " + RECENT + " sorteos.",
+    math: `<math display="block"><mrow><mi>P</mi><mo>(</mo><mi>n</mi><mo>)</mo><mo>=</mo><mfrac><mrow><msubsup><mi>f</mi><mi>n</mi><mrow><mo>(</mo><mn>250</mn><mo>)</mo></mrow></msubsup><mo>+</mo><mn>1</mn></mrow><mrow><munderover><mo>&#x2211;</mo><mrow><mi>m</mi><mo>=</mo><mn>1</mn></mrow><mn>56</mn></munderover><mo>(</mo><msubsup><mi>f</mi><mi>m</mi><mrow><mo>(</mo><mn>250</mn><mo>)</mo></mrow></msubsup><mo>+</mo><mn>1</mn><mo>)</mo></mrow></mfrac></mrow></math>`,
+ },
+  { id: "bayes", name: "Bayesiana", det: false,
+    desc: "Una muestra del posterior Dirichlet sobre las frecuencias: cada número recibe un peso Gamma(frecuencia+1) y se toman los 6 mayores.",
+    math: `<math display="block"><mrow><msub><mi>w</mi><mi>n</mi></msub><mo>&#x223C;</mo><mi>Gamma</mi><mo>(</mo><msub><mi>f</mi><mi>n</mi></msub><mo>+</mo><mn>1</mn><mo>,</mo><mn>1</mn><mo>)</mo><mo>,</mo><mspace width="1em"></mspace><mi>A</mi><mo>=</mo><msub><mi>argtop</mi><mn>6</mn></msub><mo>&#8289;</mo><msub><mi>w</mi><mi>n</mi></msub></mrow></math>`,
+ },
+  { id: "balanced", name: "Balanceada", det: false,
+    desc: "Muestreo ponderado (frecuencia × retraso) que exige el perfil de un sorteo típico: suma entre " + SUM_LO + " y " + SUM_HI + " (percentiles 15 y 85 del histórico), de 2 a 4 pares y números en ambas mitades del tablero.",
+    math: `<math display="block"><mrow><msub><mi>w</mi><mi>n</mi></msub><mo>=</mo><mo>(</mo><msub><mi>f</mi><mi>n</mi></msub><mo>+</mo><mn>1</mn><mo>)</mo><mrow><mo>(</mo><mn>1</mn><mo>+</mo><mfrac><msub><mi>r</mi><mi>n</mi></msub><mrow><munder><mi>max</mi><mi>m</mi></munder><msub><mi>r</mi><mi>m</mi></msub></mrow></mfrac><mo>)</mo></mrow></mrow></math><math display="block"><mrow><msub><mi>P</mi><mn>15</mn></msub><mo>&#x2264;</mo><munderover><mo>&#x2211;</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mn>6</mn></munderover><msub><mi>a</mi><mi>i</mi></msub><mo>&#x2264;</mo><msub><mi>P</mi><mn>85</mn></msub><mo>,</mo><mspace width="0.9em"></mspace><mn>2</mn><mo>&#x2264;</mo><mi>pares</mi><mo>&#x2264;</mo><mn>4</mn></mrow></math>`,
+ },
+  { id: "sterncover", name: "Stern–Cover", det: false,
+    desc: "Del paper “Maximum Entropy and the Lottery” (Stern & Cover, JASA 1989): combinaciones impopulares — sin fechas de cumpleaños ni números “de la suerte” — para no compartir el pozo si llegara a caer. Misma probabilidad, mejor valor esperado.",
+    math: `<math display="block"><mrow><mi>pop</mi><mo>(</mo><mi>n</mi><mo>)</mo><mo>=</mo><mn>1</mn><mo>+</mo><mn>0.8</mn><mo>&#xB7;</mo><mi mathvariant="double-struck">1</mi><mo>[</mo><mi>n</mi><mo>&#x2264;</mo><mn>31</mn><mo>]</mo></mrow></math><math display="block"><mrow><mo>+</mo><mn>0.5</mn><mo>&#xB7;</mo><mi mathvariant="double-struck">1</mi><mo>[</mo><mi>n</mi><mo>&#x2264;</mo><mn>12</mn><mo>]</mo><mo>+</mo><mn>0.4</mn><mo>&#xB7;</mo><mi mathvariant="double-struck">1</mi><mo>[</mo><mi>n</mi><mo>&#x2208;</mo><mo>{</mo><mn>3</mn><mo>,</mo><mn>7</mn><mo>,</mo><mn>13</mn><mo>,</mo><mn>21</mn><mo>}</mo><mo>]</mo></mrow></math><math display="block"><mrow><msub><mi>w</mi><mi>n</mi></msub><mo>=</mo><mi>pop</mi><msup><mrow><mo>(</mo><mi>n</mi><mo>)</mo></mrow><mrow><mo>&#x2212;</mo><mn>2</mn></mrow></msup></mrow></math>`,
+ },
+  { id: "markov", name: "Markov", det: false,
+    desc: "Caminata aleatoria sobre el grafo de co-ocurrencia: la semilla se elige por frecuencia y cada número siguiente, con probabilidad proporcional a cuántas veces ha salido junto con los ya elegidos.",
+    math: `<math display="block"><mrow><mi>P</mi><mo>(</mo><mi>n</mi><mo>&#x2223;</mo><mi>E</mi><mo>)</mo><mo>&#x221D;</mo><mn>1</mn><mo>+</mo><munder><mo>&#x2211;</mo><mrow><mi>c</mi><mo>&#x2208;</mo><mi>E</mi></mrow></munder><msub><mi>C</mi><mrow><mi>c</mi><mo>,</mo><mi>n</mi></mrow></msub></mrow></math>`,
+ },
+];
+const BY_ID = {};
+for (const s of STRATEGIES) BY_ID[s.id] = s;
+
+/* ── Estado y persistencia ── */
+let selected = STRATEGIES.map((s) => s.id);
+let count = 8;
+let K = 6; // números por boleto: 6 sencilla, 7-10 múltiple
+let lastTickets = [];
+let selTicket = null;
+try {
+  const saved = JSON.parse(localStorage.getItem("chiripa") || "null");
+  if (saved) {
+    if (Array.isArray(saved.sel) && saved.sel.length) {
+      selected = saved.sel.filter((id) => STRATEGIES.some((s) => s.id === id));
+      if (!selected.length) selected = STRATEGIES.map((s) => s.id);
+    }
+    if (saved.count >= 1 && saved.count <= 12) count = saved.count;
+    if (saved.k >= 6 && saved.k <= 10) K = saved.k;
+  }
+} catch (e) { /* almacenamiento no disponible */ }
+function persist() {
+  try { localStorage.setItem("chiripa", JSON.stringify({ sel: selected, count, k: K })); }
+  catch (e) { /* sin persistencia */ }
+}
+
+/* ── UI ── */
+const $ = (id) => document.getElementById(id);
+$("r-concurso").textContent = D.draw;
+$("r-fecha").textContent = D.date;
+$("r-nums").textContent = D.last.map((n) => String(n).padStart(2, "0")).join(" ");
+$("r-total").textContent = N.toLocaleString("es-MX");
+const WEEKDAYS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+const pot = D.next_pot ?? D.pot;
+const potLabel = D.next_pot != null ? " (Melate+R+R)" : " (último sorteo)";
+$("r-pot").textContent = (pot >= 1e6
+  ? `$${(pot / 1e6).toLocaleString("es-MX", { maximumFractionDigits: 1 })} millones`
+  : `$${pot.toLocaleString("es-MX")}`) + potLabel;
+$("r-next").textContent = D.next_date ? `${WEEKDAYS[D.next_weekday]} ${D.next_date}` : "—";
+
+const chipsBox = $("chips");
+for (const s of STRATEGIES) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "chip";
+  b.textContent = s.name;
+  b.setAttribute("aria-pressed", String(selected.includes(s.id)));
+  b.addEventListener("click", () => {
+    const on = selected.includes(s.id);
+    if (on && selected.length === 1) return; // siempre al menos una
+    selected = on ? selected.filter((x) => x !== s.id) : [...selected, s.id];
+    b.setAttribute("aria-pressed", String(!on));
+    persist();
+    render();
+  });
+  chipsBox.appendChild(b);
+}
+
+const legend = $("legend");
+for (const s of STRATEGIES) {
+  const card = document.createElement("article");
+  card.className = "method";
+  const h = document.createElement("h3");
+  h.textContent = s.name;
+  const p = document.createElement("p");
+  p.textContent = s.desc;
+  const eq = document.createElement("div");
+  eq.className = "eq";
+  eq.innerHTML = s.math;
+  const vals = document.createElement("div");
+  vals.className = "eq-vals";
+  vals.dataset.id = s.id;
+  const body = document.createElement("div");
+  body.className = "method-body";
+  body.append(eq, vals);
+  card.append(h, p, body);
+  legend.appendChild(card);
+}
+
+/* ── Gráfica del histórico ── */
+const SER_SEL = "#D22630", SER_REST = "#2F6BB0";
+const METRICS = [
+  { id: "hist", label: "Frecuencia", axis: "% de sorteos en que sale",
+    val: (n) => 100 * freq[n] / N, fmt: (v) => v.toFixed(1).replace(".0", "") + "%",
+    exp: 100 * 6 / 56, expLabel: "uniforme 10.7%" },
+  { id: "rec", label: "Últimos 250", axis: "% de sorteos en que sale",
+    val: (n) => 100 * recentFreq[n] / RECENT, fmt: (v) => v.toFixed(1).replace(".0", "") + "%",
+    exp: 100 * 6 / 56, expLabel: "uniforme 10.7%" },
+  { id: "gap", label: "Retraso", axis: "sorteos sin salir",
+    val: (n) => gap[n], fmt: (v) => String(Math.round(v)),
+    exp: 56 / 6, expLabel: "media teórica 9.3" },
+];
+let metric = METRICS[0];
+const metricBox = $("metric-chips");
+METRICS.forEach((m, i) => {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "chip";
+  b.textContent = m.label;
+  b.setAttribute("aria-pressed", String(i === 0));
+  b.addEventListener("click", () => {
+    metric = m;
+    metricBox.querySelectorAll(".chip").forEach((c) =>
+      c.setAttribute("aria-pressed", String(c === b)));
+    drawChart();
+  });
+  metricBox.appendChild(b);
+});
+
+function niceMax(v) {
+  const mag = Math.pow(10, Math.floor(Math.log10(v)));
+  for (const m of [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) if (m * mag >= v) return m * mag;
+  return 10 * mag;
+}
+function drawChart() {
+  const W = 940, H = 250, ML = 46, MR = 12, MT = 16, MB = 26;
+  const pw = W - ML - MR, ph = H - MT - MB;
+  const inBets = new Set(lastTickets.flatMap((t) => t.nums));
+  const vals = ALL.map((n) => metric.val(n));
+  const top = 4 * niceMax(Math.max(...vals, metric.exp) * 1.06 / 4);
+  const y = (v) => MT + ph * (1 - v / top);
+  const step = pw / 56, barW = step - 2;
+  let s = "";
+  for (let i = 0; i <= 4; i++) {
+    const v = top * i / 4, yy = y(v);
+    s += `<line x1="${ML}" y1="${yy}" x2="${W - MR}" y2="${yy}" stroke="var(--line)" stroke-width="1"${i ? ' stroke-dasharray="1 3"' : ""}/>`;
+    s += `<text x="${ML - 6}" y="${yy + 3}" text-anchor="end" class="ax">${metric.fmt(v)}</text>`;
+  }
+  s += `<text x="${ML}" y="${MT - 6}" class="ax">${metric.axis}</text>`;
+  ALL.forEach((n, i) => {
+    const x = ML + i * step + 1, yy = y(vals[i]);
+    const h = MT + ph - yy, r = Math.min(3, h / 2, barW / 2);
+    const fill = inBets.has(n) ? SER_SEL : SER_REST;
+    s += `<path id="bar-${n}" d="M${x} ${MT + ph} V${yy + r} Q${x} ${yy} ${x + r} ${yy} H${x + barW - r} Q${x + barW} ${yy} ${x + barW} ${yy + r} V${MT + ph} Z" fill="${fill}"/>`;
+  });
+  const ye = y(metric.exp);
+  s += `<line x1="${ML}" y1="${ye}" x2="${W - MR}" y2="${ye}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  s += `<text x="${W - MR}" y="${ye - 5}" text-anchor="end" class="ax exp">${metric.expLabel}</text>`;
+  for (const n of [1, 8, 15, 22, 29, 36, 43, 50, 56]) {
+    s += `<text x="${ML + (n - 1) * step + step / 2}" y="${H - 8}" text-anchor="middle" class="ax">${n}</text>`;
+  }
+  ALL.forEach((n, i) => {
+    s += `<rect x="${ML + i * step}" y="${MT}" width="${step}" height="${ph}" fill="transparent" data-n="${n}"/>`;
+  });
+  $("chart").innerHTML =
+    `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Estadística por número: ${metric.label}" style="width:100%;height:auto;display:block">${s}</svg>`;
+  const tip = $("tooltip");
+  $("chart").querySelectorAll("rect[data-n]").forEach((r) => {
+    const n = +r.dataset.n;
+    r.addEventListener("mouseenter", () => {
+      document.getElementById("bar-" + n).setAttribute("stroke", "var(--ink)");
+      tip.style.display = "block";
+      tip.innerHTML = `<b>Nº ${String(n).padStart(2, "0")}</b> · f ${freq[n]} (${(100 * freq[n] / N).toFixed(1)}%) · últimos 250: ${recentFreq[n]} · retraso ${gap[n]}`;
+    });
+    r.addEventListener("mousemove", (e) => {
+      const cb = $("chart-box").getBoundingClientRect();
+      const lx = Math.min(e.clientX - cb.left + 12, cb.width - tip.offsetWidth - 8);
+      tip.style.left = Math.max(0, lx) + "px";
+      tip.style.top = (e.clientY - cb.top - 34) + "px";
+    });
+    r.addEventListener("mouseleave", () => {
+      document.getElementById("bar-" + n).removeAttribute("stroke");
+      tip.style.display = "none";
+    });
+  });
+}
+
+/* ── Fórmulas con los valores del histórico ── */
+let exN = 19;
+const M = {
+  n: (x) => `<mn>${x}</mn>`,
+  i: (x) => `<mi>${x}</mi>`,
+  o: (x) => `<mo>${x}</mo>`,
+  sub: (a, b) => `<msub>${a}${b}</msub>`,
+  frac: (a, b) => `<mfrac>${a}${b}</mfrac>`,
+  sp: `<mspace width="0.8em"></mspace>`,
+  row: (...xs) => `<math><mrow>${xs.join("")}</mrow></math>`,
+  set: (a) => `<mo>{</mo>` + a.map((x) => `<mn>${x}</mn>`).join(`<mo>,</mo>`) + `<mo>}</mo>`,
+};
+function valsFor(s, n) {
+  const fn = freq[n], rn = gap[n], fr = recentFreq[n];
+  switch (s.id) {
+    case "hot":
+      return M.row(M.i("A"), M.o("="), M.set(HOT6));
+    case "cold":
+      return M.row(M.i("A"), M.o("="), M.set(COLD6));
+    case "weighted":
+      return M.row(M.i("P"), M.o("("), M.n(n), M.o(")"), M.o("="),
+        M.frac(M.n(fn + 1), M.n(F_DEN)), M.o("="),
+        M.n((100 * (fn + 1) / F_DEN).toFixed(2)), M.o("%"));
+    case "recent":
+      return M.row(M.i("P"), M.o("("), M.n(n), M.o(")"), M.o("="),
+        M.frac(M.n(fr + 1), M.n(R_DEN)), M.o("="),
+        M.n((100 * (fr + 1) / R_DEN).toFixed(2)), M.o("%"));
+    case "bayes":
+      return M.row(M.sub(M.i("w"), M.n(n)), M.o("&#x223C;"), M.i("Gamma"),
+        M.o("("), M.n(fn + 1), M.o(","), M.n(1), M.o(")"), M.o(","), M.sp,
+        M.i("E"), M.o("["), M.sub(M.i("w"), M.n(n)), M.o("]"), M.o("="), M.n(fn + 1));
+    case "balanced":
+      return M.row(M.sub(M.i("w"), M.n(n)), M.o("="),
+        M.n(fn + 1), M.o("&#xB7;"), M.o("("), M.n(1), M.o("+"),
+        M.frac(M.n(rn), M.n(MAX_GAP)), M.o(")"), M.o("="),
+        M.n(WBAL[n].toFixed(1))) + " " +
+        M.row(M.n(SUM_LO), M.o("&#x2264;"), M.o("&#x2211;"), M.i("A"), M.o("&#x2264;"), M.n(SUM_HI));
+    case "sterncover": {
+      const pop = POP[n];
+      return M.row(M.i("pop"), M.o("("), M.n(n), M.o(")"), M.o("="), M.n(pop.toFixed(1)),
+        M.o(","), M.sp, M.sub(M.i("w"), M.n(n)), M.o("="),
+        M.frac(M.n(1), `<msup>${M.n(pop.toFixed(1))}${M.n(2)}</msup>`), M.o("="),
+        M.n((1 / (pop * pop)).toFixed(3)));
+    }
+    case "markov": {
+      const [best, bv] = BEST[n];
+      return M.row(`<munder>${M.i("max")}${M.i("m")}</munder>`,
+        M.sub(M.i("C"), `<mrow>${M.n(n)}<mo>,</mo><mi>m</mi></mrow>`), M.o("="),
+        M.sub(M.i("C"), `<mrow>${M.n(n)}<mo>,</mo>${M.n(best)}</mrow>`), M.o("="), M.n(bv));
+    }
+  }
+  return "";
+}
+const rankF = {};
+D.rank.forEach((v, i) => { rankF[i + 1] = v; });
+
+/* Compact value of strategy s evaluated at number n of a ticket. */
+function valNum(s, n, ticket) {
+  switch (s.id) {
+    case "hot": return `f=${freq[n]} (#${rankF[n]})`;
+    case "cold": return `r=${gap[n]}`;
+    case "weighted": return `P=${(100 * (freq[n] + 1) / F_DEN).toFixed(2)}%`;
+    case "recent": return `P=${(100 * (recentFreq[n] + 1) / R_DEN).toFixed(2)}%`;
+    case "bayes": return `E[w]=${freq[n] + 1}`;
+    case "balanced": return `w=${WBAL[n].toFixed(0)}`;
+    case "sterncover": return `w=${(1 / (POP[n] * POP[n])).toFixed(2)}`;
+    case "markov": return `ΣC=${ticket.cs[ticket.nums.indexOf(n)]}`;
+  }
+  return "";
+}
+
+function updateVals() {
+  $("n-val").textContent = exN;
+  const ticket = selTicket !== null ? lastTickets[selTicket] : null;
+  for (const s of STRATEGIES) {
+    const el = document.querySelector(`.eq-vals[data-id="${s.id}"]`);
+    if (!el) continue;
+    if (ticket) {
+      const fila = ticket.nums.map((n) =>
+        `<span><b>${String(n).padStart(2, "0")}</b> ${valNum(s, n, ticket)}</span>`).join("");
+      el.innerHTML = `apuesta seleccionada (${ticket.name}), número por número:` +
+        `<div class="vals-row">${fila}</div>`;
+    } else {
+      el.innerHTML = (s.det ? "con el histórico actual:" : `con n = ${exN}:`) + " " + valsFor(s, exN);
+    }
+  }
+}
+$("n-minus").addEventListener("click", () => { exN = Math.max(1, exN - 1); updateVals(); });
+$("n-plus").addEventListener("click", () => { exN = Math.min(56, exN + 1); updateVals(); });
+updateVals();
+
+$("count").textContent = count;
+$("minus").addEventListener("click", () => setCount(count - 1));
+$("plus").addEventListener("click", () => setCount(count + 1));
+function setCount(v) {
+  count = Math.min(12, Math.max(1, v));
+  $("count").textContent = count;
+  persist();
+  render();
+}
+$("generate").addEventListener("click", render);
+
+function comb(n, r) {
+  let x = 1;
+  for (let i = 1; i <= r; i++) x = x * (n - r + i) / i;
+  return Math.round(x);
+}
+function kNota() {
+  $("k-val").textContent = K;
+  $("k-nota").textContent = K === 6
+    ? "sencilla: 1 combinación"
+    : `múltiple: ${comb(K, 6)} combinaciones`;
+}
+function setK(v) {
+  K = Math.min(10, Math.max(6, v));
+  kNota();
+  persist();
+  render();
+}
+$("k-minus").addEventListener("click", () => setK(K - 1));
+$("k-plus").addEventListener("click", () => setK(K + 1));
+kNota();
+
+async function render() {
+  let data;
+  try {
+    const params = new URLSearchParams({ strategies: selected.join(","), count, k: K });
+    data = await (await fetch(`/api/tickets?${params}`)).json();
+  } catch (e) {
+    return; // server unavailable: keep whatever is on screen
+  }
+  const box = $("tickets");
+  box.textContent = "";
+  selTicket = null;
+  lastTickets = data.tickets.map((t) => ({
+    id: t.strategy, name: BY_ID[t.strategy].name, nums: t.numbers, cs: t.cooc_sum,
+  }));
+  lastTickets.forEach((tk, i) => {
+    const nums = tk.nums;
+    const sum = nums.reduce((a, b) => a + b, 0);
+    const pares = nums.filter((n) => n % 2 === 0).length;
+    const t = document.createElement("article");
+    t.className = "ticket";
+    t.style.animationDelay = (i * 45) + "ms";
+    const stats = nums.map((n) =>
+      `<span class="${gap[n] <= 3 ? "r-hot" : ""}">f${freq[n]}<br>r${gap[n]}</span>`).join("");
+    t.innerHTML =
+      `<div class="ticket-head">
+        <span class="ticket-no">APUESTA ${String(i + 1).padStart(2, "0")}</span>
+        <span class="ticket-strategy">${tk.name}</span>
+      </div>
+      <div class="balls">${nums.map((n) => `<span class="ball">${String(n).padStart(2, "0")}</span>`).join("")}</div>
+      <div class="ballstats">${stats}</div>
+      <div class="ticket-meta">
+        <span>suma ${sum} · ${pares} pares${nums.length > 6 ? ` · ${comb(nums.length, 6)} combos` : ""}</span>
+        <button type="button" class="copy">Copiar</button>
+      </div>`;
+    t.querySelector(".copy").addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      copyText(nums.map((n) => String(n).padStart(2, "0")).join(" "), ev.target);
+    });
+    t.addEventListener("click", () => {
+      selTicket = selTicket === i ? null : i;
+      box.querySelectorAll(".ticket").forEach((el, j) =>
+        el.classList.toggle("sel", j === selTicket));
+      updateVals();
+    });
+    box.appendChild(t);
+  });
+  drawChart();
+  updateVals();
+}
+function copyText(text, btn) {
+  const done = () => {
+    const orig = btn.textContent;
+    btn.textContent = "Copiado ✓";
+    setTimeout(() => { btn.textContent = orig; }, 1200);
+  };
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, done);
+  else done();
+}
+$("copy-all").addEventListener("click", (ev) => {
+  const text = lastTickets
+    .map((t) => `${t.name.padEnd(12)} ${t.nums.map((n) => String(n).padStart(2, "0")).join(" ")}`)
+    .join("\n");
+  copyText(text, ev.target);
+});
+
+render();
+</script>

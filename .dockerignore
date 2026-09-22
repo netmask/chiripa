@@ -1,0 +1,6 @@
+target/
+.git/
+.claude/
+fly.toml
+README.md
+LICENSE
